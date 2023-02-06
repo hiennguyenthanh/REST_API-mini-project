@@ -6,9 +6,13 @@ const { v4: uuidv4 } = require("uuid");
 const bodyParser = require("body-parser");
 const path = require("path");
 
-const feedRoute = require("./routes/feed");
+const feedRoutes = require("./routes/feed");
+const authRoutes = require("./routes/auth");
+
+const isAuth = require("./middleware/is-auth");
 
 const app = express();
+
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "images");
@@ -32,8 +36,8 @@ const fileFilter = (req, file, cb) => {
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(multer({ storage: fileStorage, fileFilter }).single("image"));
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -45,22 +49,24 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/feed", feedRoute);
+app.use("/feed", isAuth, feedRoutes);
+app.use("/auth", authRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
   const statusCode = error.statusCode || 500;
   const { msg } = error;
-  res.status(statusCode).json({ msg });
+  const data = error.data;
+  res.status(statusCode).json({ msg, data });
 });
 
 mongoose
   .connect(
     "mongodb+srv://hien:enhLohCjm8Vk3hSP@cluster0.mwbdzpd.mongodb.net/messages"
   )
-  .then((res) =>
+  .then((result) =>
     app.listen(3000, () => {
-      console.log("listening on port 3000");
+      console.log("Listening on port 3000");
     })
   )
   .catch((err) => console.log(err));

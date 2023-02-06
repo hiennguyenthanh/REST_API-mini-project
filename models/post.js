@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const postSchema = new Schema(
+const PostSchema = new Schema(
   {
     title: {
       type: String,
@@ -16,11 +16,11 @@ const postSchema = new Schema(
       required: true,
     },
     creator: {
-      type: Object,
-      required: String,
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Post", postSchema);
+module.exports = mongoose.model("Post", PostSchema);
