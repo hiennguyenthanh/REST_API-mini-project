@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
+const io = require("../socket");
 const Post = require("../models/post");
 const User = require("../models/user");
 const { validationResult } = require("express-validator");
@@ -14,6 +15,7 @@ exports.getPosts = async (req, res, next) => {
 
     const posts = await Post.find()
       .populate("creator")
+      .sort({ createdAt: -1 })
       .skip((page - 1) * postPerPage)
       .limit(postPerPage);
 
@@ -59,6 +61,8 @@ exports.createPost = async (req, res, next) => {
     user.posts.push(post);
 
     await user.save();
+
+    io.getIO().emit("posts", { action: "create", post });
 
     res.status(201).json({
       msg: "Post created!",
@@ -137,6 +141,8 @@ exports.updatePost = async (req, res, next) => {
 
     await post.save();
 
+    io.emit("posts", { action: "update", post });
+
     res.status(200).json({ msg: "Post updated", post: result });
   } catch (err) {
     if (!err.statusCode) {
@@ -172,7 +178,7 @@ exports.deletePost = async (req, res, next) => {
     user.posts.pull(postId);
 
     await user.save();
-
+    io.emit("posts", { action: "delete", postId });
     res.status(200).json({ msg: "Post deleted" });
   } catch (err) {
     if (!err.statusCode) {

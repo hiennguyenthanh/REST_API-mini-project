@@ -64,8 +64,14 @@ try {
   await mongoose.connect(
     "mongodb+srv://hien:enhLohCjm8Vk3hSP@cluster0.mwbdzpd.mongodb.net/messages"
   );
-  app.listen(3000, () => {
+
+  const server = app.listen(3000, () => {
     console.log("Listening on port 3000");
+  });
+
+  const io = require("./socket").init(server);
+  io.on("connection", (socket) => {
+    console.log("Client connected");
   });
 } catch (error) {
   console.log(error);
