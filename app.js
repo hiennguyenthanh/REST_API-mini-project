@@ -60,13 +60,13 @@ app.use((error, req, res, next) => {
   res.status(statusCode).json({ msg, data });
 });
 
-mongoose
-  .connect(
+try {
+  await mongoose.connect(
     "mongodb+srv://hien:enhLohCjm8Vk3hSP@cluster0.mwbdzpd.mongodb.net/messages"
-  )
-  .then((result) =>
-    app.listen(3000, () => {
-      console.log("Listening on port 3000");
-    })
-  )
-  .catch((err) => console.log(err));
+  );
+  app.listen(3000, () => {
+    console.log("Listening on port 3000");
+  });
+} catch (error) {
+  console.log(error);
+}
